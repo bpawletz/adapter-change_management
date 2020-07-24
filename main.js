@@ -94,7 +94,7 @@ class ServiceNowAdapter extends EventEmitter {
      *   that handles the response.
      */
     healthcheck(callback) {
-        this.getRecord((result, error) => {
+        this.postRecord((result, error) => {
             /**
              * For this lab, complete the if else conditional
              * statements that check if an error exists
@@ -192,12 +192,13 @@ class ServiceNowAdapter extends EventEmitter {
          * get() takes a callback function.
          */
         this.connector.get((data, error) => {
-            if (this.process(data, error)) {
-                var responses = JSON.parse(data.body);
+            if (this.preProcess(data, error)) {
+                var responses = JSON.parse(data.response.body);
                 var records = [];
                 for (let result of responses.result) {
                     records.push(this.extractRecord(result));
                 }
+                log.trace(`Records: ${JSON.stringify(records)}`);
                 callback(records, error);
 
             } else {
@@ -223,9 +224,11 @@ class ServiceNowAdapter extends EventEmitter {
          * post() takes a callback function.
          */
         this.connector.post((data, error) => {
-            if (this.process(data, error)) {
-                var response = JSON.parse(data.body).result;
-                callback(extractRecord(response), error);
+            if (this.preProcess(data, error)) {
+                var response = JSON.parse(data.response.body).result;
+                log.trace(`Records: ${JSON.stringify(this.extractRecord(response))}`);
+
+                callback(this.extractRecord(response), error);
             } else {
                 callback(data, error);
             }
@@ -234,7 +237,7 @@ class ServiceNowAdapter extends EventEmitter {
 
 
     /**
-     * @method process
+     * @method preProcess
      * @description Instantiates an object from the imported ServiceNowConnector class
      *   and tests the object's get and post methods.
      * @param {(object|string)} data - An object containint the API reponse data
@@ -242,13 +245,13 @@ class ServiceNowAdapter extends EventEmitter {
      * @param {(object|string)} data.response - The API's response. Will be an object if sunnyday path.
      * @param {(object|string)} error - If an error occures this oject will be true.
     */
-    process(data, error) {
+    preProcess(data, error) {
         if (error) {
             log.error(`\nError returned from ${data.method} request:\n${JSON.stringify(error)}`);
             return false;
         } else {
             if (!data.hasOwnProperty('body')) {
-                log.info(`\nResponse returned from ${data.method} request:\n${JSON.stringify(data.response)}`)
+                log.trace(`\nResponse returned from ${data.method} request:\n${JSON.stringify(data.response)}`)
                 return true;
 
             } else {
