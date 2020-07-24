@@ -32,6 +32,30 @@
     "operator"
   ],
   "task": true
+},
+{
+  "name": "postRecord",
+  "summary": "Create a ticket",
+  "description": "Get the first ServiceNow change management ticket.",
+  "input": [],
+  "output": {
+    "name": "changeTickets",
+    "type": "array",
+    "description": "An objects. The new change management ticket document.",
+    "schema": {
+      "type": "object",
+      "items": {
+        "title": "changeTicket",
+        "$ref": "changeRequest#/definitions/changeTicket"
+      }
+    }
+  },
+  "roles": [
+    "admin",
+    "engineer",
+    "operator"
+  ],
+  "task": true
 }
   ]
 }
