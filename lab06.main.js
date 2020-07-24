@@ -131,8 +131,8 @@ class ServiceNowAdapter extends EventEmitter {
                  * parameter as an argument for the callback function's
                  * responseData parameter.
                  */
-                this.emitOnline();
-                return result;
+                 this.emitOnline();
+                 return result;
 
             }
         });
@@ -192,17 +192,8 @@ class ServiceNowAdapter extends EventEmitter {
          * get() takes a callback function.
          */
         this.connector.get((data, error) => {
-            if (this.process(data, error)) {
-                var responses = JSON.parse(data.body);
-                var records = [];
-                for (let result of responses.result) {
-                    records.push(this.extractRecord(result));
-                }
-                callback(records, error);
-
-            } else {
-                callback(data, error);
-            }
+        this.process(data, error);
+        callback(data, error);
         });
     }
 
@@ -222,14 +213,9 @@ class ServiceNowAdapter extends EventEmitter {
          * Note how the object was instantiated in the constructor().
          * post() takes a callback function.
          */
-        this.connector.post((data, error) => {
-            if (this.process(data, error)) {
-                var response = JSON.parse(data.body).result;
-                callback(extractRecord(response), error);
-            } else {
-                callback(data, error);
-            }
-        });
+        this.connector.post(data, error);
+        this.process(data, error);
+        callback(data, error);
     }
 
 
@@ -244,38 +230,13 @@ class ServiceNowAdapter extends EventEmitter {
     */
     process(data, error) {
         if (error) {
-            log.error(`\nError returned from ${data.method} request:\n${JSON.stringify(error)}`);
-            return false;
+            console.error(`\nError returned from ${data.method} request:\n${JSON.stringify(error)}`);
         } else {
-            if (!data.hasOwnProperty('body')) {
-                log.info(`\nResponse returned from ${data.method} request:\n${JSON.stringify(data.response)}`)
-                return true;
-
-            } else {
-                log.error(`\nResponse returned from ${data.method} request missing body:\n${JSON.stringify(data.response)}`)
-                return false;
-            }
+            console.log(`\nResponse returned from ${data.method} request:\n${JSON.stringify(data.response)}`)
         }
     }
 
-    /**
-         * @method extractRecord
-         * @description Process the record and return an object containing required data.
-         * @param {(object|string)} body - An object containint the API reponse body
-    
-        */
-    extractRecord(record) {
 
-        return {
-            change_ticket_number: record.number,
-            change_ticket_key: record.sys_id,
-            active: record.active,
-            priority: record.priority,
-            description: record.description,
-            work_start: record.work_start,
-            work_end: record.work_end
-        }
-    }
 }
 
 module.exports = ServiceNowAdapter;
